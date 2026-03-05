@@ -293,54 +293,8 @@
   </footer>
 
   <script>
-    // 系统链接数据配置
-    const systemLinks = [
-      {
-        id: 1,
-        title: '预算管理汇总',
-        url: 'https://li.feishu.cn/wiki/Cde5wymZwiEtB2knpgfcJQuanzh',
-        description: '实验室费用预测、核算、历史查询',
-        category: '预算管理',
-        icon: '📈',
-        color: '#67C23A'
-      },
-      {
-        id: 2,
-        title: '实际花销',
-        url: 'https://li.feishu.cn/share/base/form/shrcnVkfDhMAjejNdrIEo59Pihf',
-        description: '实验室实际支出记录与查询',
-        category: '预算管理',
-        icon: '💰',
-        color: '#E6A23C'
-      },
-      {
-        id: 3,
-        title: '投资预测',
-        url: 'https://li.feishu.cn/wiki/MFdKwvNRkit0o5kqo2PcYSnRnae?sheet=G4Oy6i',
-        description: '投资、转让、许可等决策',
-        category: '预算管理',
-        icon: '📄',
-        color: '#409EFF'
-      },
-      {
-        id: 4,
-        title: '实验室固资',
-        url: 'https://li.feishu.cn/docs/doccn4Yg1BQ0Go42GbjxF2N96sc',
-        description: '实验室固定资产登记',
-        category: '资产管理',
-        icon: '📦',
-        color: '#909399'
-      },
-      {
-        id: 5,
-        title: '工业化固资',
-        url: 'https://li.feishu.cn/sheets/UCJyskhoah5dNgttIN9c7JHBnGa?from=from_lark_index_search&ccm_open_type=from_lark_index_search',
-        description: '工业化投资记录',
-        category: '投资管理',
-        icon: '📊',
-        color: '#F56C6C'
-      }
-    ];
+    // 系统链接数据（从后端API获取）
+    let systemLinks = [];
 
     let currentCategory = '';
 
@@ -426,10 +380,41 @@
       window.open(url, '_blank');
     }
 
+    // 从后端API加载数据
+    async function loadLinksFromAPI() {
+      try {
+        const response = await fetch('http://localhost:5000/api/links');
+        const result = await response.json();
+
+        if (result.code === 200) {
+          systemLinks = result.data;
+          renderCategoryButtons();
+          renderCards(systemLinks);
+        } else {
+          console.error('加载数据失败:', result);
+          showError('加载数据失败，请检查后端服务是否运行');
+        }
+      } catch (error) {
+        console.error('请求失败:', error);
+        showError('无法连接到后端服务，请确保后端服务运行在 http://localhost:5000');
+      }
+    }
+
+    // 显示错误信息
+    function showError(message) {
+      const container = document.getElementById('cardsContainer');
+      const emptyState = document.getElementById('emptyState');
+      container.style.display = 'none';
+      emptyState.style.display = 'block';
+      emptyState.innerHTML = `
+        <div class="empty-state-icon">⚠️</div>
+        <p>${message}</p>
+      `;
+    }
+
     // 初始化
     function init() {
-      renderCategoryButtons();
-      renderCards(systemLinks);
+      loadLinksFromAPI();
     }
 
     // 页面加载完成后初始化
