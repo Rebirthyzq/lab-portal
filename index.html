@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>实验室预算&固资导航平台</title>
+  <!-- 引入 Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 引入 Element Plus -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/element-plus"></script>
+  <!-- 引入 Element Plus Icons -->
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
   <style>
     * {
       margin: 0;
@@ -253,94 +260,60 @@
   </style>
 </head>
 <body>
-  <!-- 顶部导航栏 -->
-  <nav class="navbar">
-    <div class="navbar-content">
-      <div class="logo-section">
-        <div class="logo-icon">🧪</div>
-        <div class="logo-text">
-          <h1>实验室预算&固资导航平台</h1>
-          <p>Budget & Asset Management Portal</p>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <div class="logo-section">
+          <div class="logo-icon">🧪</div>
+          <div class="logo-text">
+            <h1>实验室预算&固资导航平台</h1>
+            <p>Budget & Asset Management Portal</p>
+          </div>
         </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <!-- 主内容区 -->
-  <div class="main-content">
-    <!-- 分类筛选 -->
-    <div class="filter-section">
-      <div class="category-buttons" id="categoryButtons">
-        <!-- 动态生成分类按钮 -->
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 分类筛选 -->
+      <div class="filter-section">
+        <div class="category-buttons">
+          <button
+            class="category-btn"
+            :class="{ active: currentCategory === '' }"
+            @click="filterByCategory('')"
+          >
+            全部系统
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat"
+            class="category-btn"
+            :class="{ active: currentCategory === cat }"
+            @click="filterByCategory(cat)"
+          >
+            {{ cat }}
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- 卡片网格 -->
-    <div class="cards-container" id="cardsContainer">
-      <!-- 动态生成卡片 -->
-    </div>
-
-    <!-- 空状态 -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-      <div class="empty-state-icon">📭</div>
-      <p>没有找到相关系统</p>
-    </div>
-  </div>
-
-  <!-- 页脚 -->
-  <footer class="footer">
-    <p>© 2024 实验室预算&固资导航平台 | 便捷管理，高效运作</p>
-  </footer>
-
-  <script>
-    // 系统链接数据（从后端API获取）
-    let systemLinks = [];
-
-    let currentCategory = '';
-
-    // 获取所有分类
-    function getCategories() {
-      const categories = [...new Set(systemLinks.map(link => link.category))];
-      return categories.filter(c => c);
-    }
-
-    // 渲染分类按钮
-    function renderCategoryButtons() {
-      const container = document.getElementById('categoryButtons');
-      const categories = getCategories();
-
-      let html = '<button class="category-btn active" onclick="filterByCategory(\'\')">全部系统</button>';
-      categories.forEach(cat => {
-        html += `<button class="category-btn" onclick="filterByCategory('${cat}')">${cat}</button>`;
-      });
-
-      container.innerHTML = html;
-    }
-
-    // 渲染卡片
-    function renderCards(links) {
-      const container = document.getElementById('cardsContainer');
-      const emptyState = document.getElementById('emptyState');
-
-      if (links.length === 0) {
-        container.style.display = 'none';
-        emptyState.style.display = 'block';
-        return;
-      }
-
-      container.style.display = 'grid';
-      emptyState.style.display = 'none';
-
-      const html = links.map(link => `
-        <div class="system-card" onclick="openLink('${link.url}')">
+      <!-- 卡片网格 -->
+      <div class="cards-container" v-if="filteredLinks.length > 0">
+        <div
+          v-for="link in filteredLinks"
+          :key="link.id"
+          class="system-card"
+          @click="openLink(link.url)"
+        >
           <div class="card-header">
-            <div class="card-icon" style="background: ${link.color}">
-              ${link.icon}
+            <div class="card-icon" :style="{ background: link.color }">
+              <component :is="link.icon" style="width: 32px; height: 32px; color: #fff;" />
             </div>
           </div>
           <div class="card-body">
-            <h3 class="card-title">${link.title}</h3>
-            <p class="card-description">${link.description}</p>
+            <h3 class="card-title">{{ link.title }}</h3>
+            <p class="card-description">{{ link.description }}</p>
           </div>
           <div class="card-footer">
             <button class="visit-btn">
@@ -348,77 +321,95 @@
             </button>
           </div>
         </div>
-      `).join('');
+      </div>
 
-      container.innerHTML = html;
-    }
+      <!-- 空状态 -->
+      <div class="empty-state" v-else>
+        <div class="empty-state-icon">📭</div>
+        <p>{{ emptyMessage }}</p>
+      </div>
+    </div>
 
-    // 按分类筛选
-    function filterByCategory(category) {
-      currentCategory = category;
+    <!-- 页脚 -->
+    <footer class="footer">
+      <p>© 2024 实验室预算&固资导航平台 | 便捷管理，高效运作</p>
+    </footer>
+  </div>
 
-      // 更新按钮状态
-      const buttons = document.querySelectorAll('.category-btn');
-      buttons.forEach(btn => {
-        btn.classList.remove('active');
-        if ((category === '' && btn.textContent === '全部系统') ||
-            btn.textContent === category) {
-          btn.classList.add('active');
-        }
-      });
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
 
-      // 筛选并渲染
-      const filtered = category === ''
-        ? systemLinks
-        : systemLinks.filter(link => link.category === category);
+    const app = createApp({
+      setup() {
+        const systemLinks = ref([]);
+        const currentCategory = ref('');
+        const emptyMessage = ref('没有找到相关系统');
 
-      renderCards(filtered);
-    }
+        // 获取所有分类
+        const categories = computed(() => {
+          const cats = [...new Set(systemLinks.value.map(link => link.category))];
+          return cats.filter(c => c);
+        });
 
-    // 打开链接
-    function openLink(url) {
-      window.open(url, '_blank');
-    }
+        // 过滤链接
+        const filteredLinks = computed(() => {
+          if (!currentCategory.value) {
+            return systemLinks.value;
+          }
+          return systemLinks.value.filter(link => link.category === currentCategory.value);
+        });
 
-    // 从后端API加载数据
-    async function loadLinksFromAPI() {
-      try {
-        const response = await fetch('http://localhost:5000/api/links');
-        const result = await response.json();
+        // 按分类筛选
+        const filterByCategory = (category) => {
+          currentCategory.value = category;
+        };
 
-        if (result.code === 200) {
-          systemLinks = result.data;
-          renderCategoryButtons();
-          renderCards(systemLinks);
-        } else {
-          console.error('加载数据失败:', result);
-          showError('加载数据失败，请检查后端服务是否运行');
-        }
-      } catch (error) {
-        console.error('请求失败:', error);
-        showError('无法连接到后端服务，请确保后端服务运行在 http://localhost:5000');
+        // 打开链接
+        const openLink = (url) => {
+          window.open(url, '_blank');
+        };
+
+        // 从后端API加载数据
+        const loadLinksFromAPI = async () => {
+          try {
+            const response = await fetch('http://localhost:5000/api/links');
+            const result = await response.json();
+
+            if (result.code === 200) {
+              systemLinks.value = result.data;
+            } else {
+              console.error('加载数据失败:', result);
+              emptyMessage.value = '加载数据失败，请检查后端服务是否运行';
+            }
+          } catch (error) {
+            console.error('请求失败:', error);
+            emptyMessage.value = '无法连接到后端服务，请确保后端服务运行在 http://localhost:5000';
+          }
+        };
+
+        onMounted(() => {
+          loadLinksFromAPI();
+        });
+
+        return {
+          systemLinks,
+          currentCategory,
+          emptyMessage,
+          categories,
+          filteredLinks,
+          filterByCategory,
+          openLink
+        };
       }
+    });
+
+    // 注册所有 Element Plus Icons
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component);
     }
 
-    // 显示错误信息
-    function showError(message) {
-      const container = document.getElementById('cardsContainer');
-      const emptyState = document.getElementById('emptyState');
-      container.style.display = 'none';
-      emptyState.style.display = 'block';
-      emptyState.innerHTML = `
-        <div class="empty-state-icon">⚠️</div>
-        <p>${message}</p>
-      `;
-    }
-
-    // 初始化
-    function init() {
-      loadLinksFromAPI();
-    }
-
-    // 页面加载完成后初始化
-    document.addEventListener('DOMContentLoaded', init);
+    // 挂载应用
+    app.mount('#app');
   </script>
 </body>
 </html>
