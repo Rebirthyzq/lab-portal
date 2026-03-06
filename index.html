@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实验室预算&固资导航平台</title>
+  <!-- 引入 Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 引入 Element Plus -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/element-plus"></script>
+  <!-- 引入 Element Plus Icons -->
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 顶部导航栏 */
+    .navbar {
+      background: #fff;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-icon {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .logo-text h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .logo-text p {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 4px 0 0 0;
+      line-height: 1;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* 分类筛选 */
+    .filter-section {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .category-buttons {
+      display: inline-flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .category-btn {
+      padding: 10px 24px;
+      border: 1px solid #dcdfe6;
+      background: #fff;
+      color: #606266;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .category-btn:hover {
+      color: #409eff;
+      border-color: #409eff;
+    }
+
+    .category-btn.active {
+      background: #409eff;
+      color: #fff;
+      border-color: #409eff;
+    }
+
+    /* 卡片网格 */
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .system-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .system-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.12);
+      border-color: #409eff;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      font-size: 32px;
+      color: #fff;
+    }
+
+    .system-card:hover .card-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .card-body {
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin: 0;
+      text-align: center;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .visit-btn {
+      background: none;
+      border: none;
+      color: #409eff;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .visit-btn:hover {
+      color: #66b1ff;
+    }
+
+    /* 页脚 */
+    .footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #909399;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .navbar-content {
+        height: 60px;
+        padding: 0 16px;
+      }
+
+      .logo-text h1 {
+        font-size: 16px;
+      }
+
+      .logo-text p {
+        display: none;
+      }
+
+      .main-content {
+        padding: 20px 16px;
+      }
+
+      .cards-container {
+        grid-template-columns: 1fr;
+      }
+
+      .system-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <div class="logo-section">
+          <div class="logo-icon">🧪</div>
+          <div class="logo-text">
+            <h1>实验室预算&固资导航平台</h1>
+            <p>Budget & Asset Management Portal</p>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 分类筛选 -->
+      <div class="filter-section">
+        <div class="category-buttons">
+          <button
+            class="category-btn"
+            :class="{ active: currentCategory === '' }"
+            @click="filterByCategory('')"
+          >
+            全部系统
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat"
+            class="category-btn"
+            :class="{ active: currentCategory === cat }"
+            @click="filterByCategory(cat)"
+          >
+            {{ cat }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 卡片网格 -->
+      <div class="cards-container" v-if="filteredLinks.length > 0">
+        <div
+          v-for="link in filteredLinks"
+          :key="link.id"
+          class="system-card"
+          @click="openLink(link.url)"
+        >
+          <div class="card-header">
+            <div class="card-icon" :style="{ background: link.color }">
+              <component :is="link.icon" style="width: 32px; height: 32px; color: #fff;" />
+            </div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">{{ link.title }}</h3>
+            <p class="card-description">{{ link.description }}</p>
+          </div>
+          <div class="card-footer">
+            <button class="visit-btn">
+              访问链接 →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div class="empty-state" v-else>
+        <div class="empty-state-icon">📭</div>
+        <p>{{ emptyMessage }}</p>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+      <p>© 2024 实验室预算&固资导航平台 | 便捷管理，高效运作</p>
+    </footer>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    const app = createApp({
+      setup() {
+        // 系统链接数据（直接硬编码，不依赖后端API）
+        const systemLinks = ref([
+          {
+            id: 1,
+            title: '预算管理汇总',
+            url: 'https://li.feishu.cn/wiki/Cde5wymZwiEtB2knpgfcJQuanzh',
+            description: '实验室费用预测、计提、历史数据',
+            category: '预算管理',
+            icon: 'TrendCharts',
+            color: '#67C23A'
+          },
+          {
+            id: 2,
+            title: '实际花销',
+            url: 'https://li.feishu.cn/share/base/form/shrcnVkfDhMAjejNdrIEo59Pihf',
+            description: '实验室实际支出记录与查询',
+            category: '预算管理',
+            icon: 'Money',
+            color: '#E6A23C'
+          },
+          {
+            id: 3,
+            title: '投资预测',
+            url: 'https://li.feishu.cn/wiki/MFdKwvNRkit0o5kqo2PcYSnRnae?sheet=G4Oy6i',
+            description: '投资资金口径与转固口径',
+            category: '预算管理',
+            icon: 'Document',
+            color: '#409EFF'
+          },
+          {
+            id: 4,
+            title: '实验室固资',
+            url: 'https://li.feishu.cn/docs/doccn4Yg1BQ0Go42GbjxF2N96sc',
+            description: '实验室固定资产登记',
+            category: '资产管理',
+            icon: 'Box',
+            color: '#909399'
+          },
+          {
+            id: 5,
+            title: '工业化固资',
+            url: 'https://li.feishu.cn/sheets/UCJyskhoah5dNgttIN9c7JHBnGa?from=from_lark_index_search&ccm_open_type=from_lark_index_search',
+            description: '工业化投资记录',
+            category: '投资管理',
+            icon: 'DataLine',
+            color: '#F56C6C'
+          },
+          {
+            id: 6,
+            title: '工业化低值易耗',
+            url: 'https://li.feishu.cn/wiki/HF8AwMSbWilV6KkeVU3cG71qnGf',
+            description: '工业化低耗',
+            category: '预算管理',
+            icon: 'Link',
+            color: '#409EFF'
+          }
+        ]);
+
+        const currentCategory = ref('');
+        const emptyMessage = ref('没有找到相关系统');
+
+        // 获取所有分类
+        const categories = computed(() => {
+          const cats = [...new Set(systemLinks.value.map(link => link.category))];
+          return cats.filter(c => c);
+        });
+
+        // 过滤链接
+        const filteredLinks = computed(() => {
+          if (!currentCategory.value) {
+            return systemLinks.value;
+          }
+          return systemLinks.value.filter(link => link.category === currentCategory.value);
+        });
+
+        // 按分类筛选
+        const filterByCategory = (category) => {
+          currentCategory.value = category;
+        };
+
+        // 打开链接
+        const openLink = (url) => {
+          window.open(url, '_blank');
+        };
+
+        return {
+          systemLinks,
+          currentCategory,
+          emptyMessage,
+          categories,
+          filteredLinks,
+          filterByCategory,
+          openLink
+        };
+      }
+    });
+
+    // 注册所有 Element Plus Icons
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component);
+    }
+
+    // 挂载应用
+    app.mount('#app');
+  </script>
+</body>
+</html>
